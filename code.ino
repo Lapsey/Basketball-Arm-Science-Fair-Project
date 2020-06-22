@@ -14,8 +14,12 @@ int wristPotArr[2000] = {-1};
 
 int index = 0;
 
+int lastMilis = 0;
+int currentMillis = 0;
+
 void setup() {
-  
+  lastMillis = millis();
+  currentMillis = millis();
 }
 
 void draw() {
@@ -23,6 +27,15 @@ void draw() {
   executeMoveState = digitalRead(executePin);
   
   while (recordMoveState == HIGH) {
+    currentMillis = millis();
     
+    if (currentMillis - lastMillis >= 2) {
+      shoulderPosArr[index] = analogRead(shoulderPotPin);
+      elbowPosArr[index] = analogRead(elbowPotPin);
+      wristPosArr[index] = analogRead(wristPotPin);
+      
+      index++
+      lastMillis = currentMillis;
+    }
   }
 }
