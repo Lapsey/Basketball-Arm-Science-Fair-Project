@@ -1,3 +1,15 @@
+#include <Servo.h> //Include the servo library
+
+//Pins for the three servos
+const int shoulderServoPin = 2;
+const int elbowServoPin = 3;
+const int wristServoPin = 4;
+
+//Create Servo objects for each servo
+Servo shoulder;
+Servo elbow;
+Servo wrist;
+
 //Pins for the record movement and execute movement buttons
 const int recordPin = 0;
 const int executePin = 1;
@@ -28,11 +40,17 @@ void setup() {
   //Set the pin mode of the record pin and execute pin to input
   pinMode(recordPin, INPUT); 
   pinMode(executePin, INPUT);
+  
+  //Attach each servo to the coresponding pin
+  shoulder.attach(shoulderServoPin);
+  elbow.attach(elbowServoPin);
+  wrist.attach(wristServoPin);
 }
 
 void draw() {
-  if (digitalRead(recordPin) == HIGH && flag == 0) { //Check if the record button has been pressed
-    flag = 1; //this makes sure that we will only execute this block of code once per button press
+  //Recording Code
+  if (digitalRead(recordPin) == HIGH && flag1 == 0) { //Check if the record button has been pressed
+    flag1 = 1; //this makes sure that we will only execute this block of code once per button press
     
     //Set all of the position arrays to empty or -1 in this case
     for (int i = 0; i < sizeOf(shoulderPosArr); i++) {
@@ -42,8 +60,8 @@ void draw() {
     }
   }
   
-  if (digitalRead(recordPin) == LOW && flag == 1) { //check if the button is no longer pressed
-    flag = 0; //set the flag to zero so the button pressed code can execute
+  if (digitalRead(recordPin) == LOW && flag1 == 1) { //check if the button is no longer pressed
+    flag1 = 0; //set the flag to zero so the button pressed code can execute
   }
   
   while (digitalRead(recordPin) == HIGH) { //As long as the record button is pressed execute the following code
@@ -58,5 +76,31 @@ void draw() {
       index++; //increase the index so we can store the next point of the movement
       lastMillis = currentMillis; //Set the last time checked to the current time
     }
-  } 
+  }
+  
+  if (digitalRead(executePin) == HIGH && flag2 == 0) { //Check if the execute button has been pressed
+    flag2 = 1; //Set the flag to 1 so that next time through the loop if we are still holding the button this code doesn't run again
+    
+    executeMovement(); //Call the execute movement function
+  }
+}
+
+void executeMovement() {
+  for (int i = 0; i < sizeOf(shoulderPosArr); i++) {
+    if (shoulderPosArr[i] == -1) { //if the current index is -1 that means it is empty and so is the rest of the array
+      break; //break from the loop
+    } else {
+      //Map the angles to values that the servos can position to
+      int currentshoulderAngle = map(shoulderPosArr[i], 0, 1024, 0, 180);
+      int currentElbowAngle = map(elbowPosArr[i], 0, 1024, 0, 180);
+      int currentWristAngle = map(wristPosArr[i], 0, 1024, 0, 180);
+      
+      //Write the servos to the correct position
+      shoulder.write(currentShoulderAngle);
+      elbow.write(currentElbowAngle);
+      wrist.write(currentWristAngle);
+      
+      delay(2); //Wait 2 milliseconds before going to the next position
+    }
+  }  
 }
